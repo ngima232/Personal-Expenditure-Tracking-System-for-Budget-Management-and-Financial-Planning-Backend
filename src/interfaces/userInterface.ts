@@ -1,0 +1,30 @@
+import { ModelTimestampExtend, PaginationOrderSearchExtend } from ".";
+import { Types, Document } from 'mongoose';
+import { AuthProviderEnum } from '../enums'
+export interface InputeUserInterface {
+  name: string;
+  email: string;
+  password: string;
+  image?: string;
+  currency?: string; 
+  googleId?: string;
+  authProvider?:AuthProviderEnum
+  deviceToken?:string
+}
+
+
+export interface UserInterface extends Document, ModelTimestampExtend, InputeUserInterface {
+  _id: Types.ObjectId;
+}
+
+export interface ChangePassword {
+  email: string;
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface UserLogin {
+  email: string;
+  password: string;
+  deviceToken?: string;
+}

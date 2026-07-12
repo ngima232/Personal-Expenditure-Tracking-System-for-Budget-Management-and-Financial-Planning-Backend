@@ -2,7 +2,7 @@ import { RouterClass} from '../classes'
 import { UserController } from '../controllers';
 import exceptionHandler from '../middlewares/exceptionHandler';
 import { Validator } from '../middlewares';
-import { createUser, updateUser } from '../validators';
+import {  updateUser } from '../validators';
 
 
 export class UserRoute extends RouterClass{
@@ -11,12 +11,6 @@ export class UserRoute extends RouterClass{
   }
 
   define(): void {
-    this.router
-    .route("/")
-    .post(
-      Validator.check(createUser),
-      exceptionHandler(UserController.create))
-
     this.router
     .route("/:id")
     .patch(

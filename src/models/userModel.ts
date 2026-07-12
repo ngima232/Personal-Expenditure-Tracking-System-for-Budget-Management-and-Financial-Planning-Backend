@@ -30,4 +30,4 @@ const userSchema = new Schema<UserInterface>(
     timestamps: true,
   }
 );
-export const userModel =  mongoose.model<UserInterface>('user', userSchema);
+export const userModel =  mongoose.model<UserInterface>('User', userSchema);

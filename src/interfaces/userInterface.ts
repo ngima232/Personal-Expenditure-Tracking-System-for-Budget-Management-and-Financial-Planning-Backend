@@ -28,3 +28,8 @@ export interface UserLogin {
   password: string;
   deviceToken?: string;
 }
+
+export interface GetUserInterface {
+  id: any | string;
+  name: string;
+}

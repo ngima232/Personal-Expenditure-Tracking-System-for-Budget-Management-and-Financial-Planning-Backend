@@ -1,7 +1,8 @@
-import { InputeUserInterface, UserInterface,ChangePassword ,UserLogin} from '../interfaces';
+import { InputeUserInterface, UserInterface,ChangePassword ,UserLogin,GetUserInterface} from '../interfaces';
 import { userModel } from '../models'
 import { Password,  Encoding} from "../utils";
-export class userService {
+export class UserService {
+
   async create(input: InputeUserInterface): Promise<UserInterface> {
     const originalEmail = input.email
     if (input.email) {
@@ -72,6 +73,7 @@ export class userService {
   ): Promise<UserInterface | null> {
 
     const EncryptedEmail = await Encoding.encode(input.email);
+    console.log("EncryptedEmail",EncryptedEmail)
     const emailExist = await userModel.findOne({
       email: EncryptedEmail,
       deletedAt: null,
@@ -104,6 +106,27 @@ export class userService {
     const dataExists = await  userModel.findOne(query);
     if (!dataExists) throw new Error(`Data not found for the given query: ${JSON.stringify(query)}`)
     return dataExists;
+  }
+
+   async getById(id: string): Promise<GetUserInterface | null> {
+    try {
+      const userExist = await userModel
+        .findOne({ _id: id, deletedAt: null })
+        .select("_id name");
+
+      if (!userExist) {
+        throw new Error(`user id : ${id} is not found`);
+      }
+     
+      const data = {
+        id: userExist._id,
+        name: userExist.name
+      };
+
+      return data;
+    } catch (error: any) {
+      throw new Error(`Error fetching employee role: ${error.message}`);
+    }
   }
 
 }

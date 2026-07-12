@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { userService } from "../services";
+import { UserService } from "../services";
 import {
   successResponseData,
   errorResponse,
@@ -24,7 +24,7 @@ export class UserController {
       // }
 
      // const user = await this.service.create(data);
-        const user = await new userService().create(data);
+        const user = await new UserService().create(data);
 
       return successResponseData({
         data: user,
@@ -49,7 +49,7 @@ export class UserController {
     try {
       const { id } = req.params;
 
-      const updatedUser =await new userService().update(
+      const updatedUser =await new UserService().update(
         id,
         req.body
       );
@@ -77,7 +77,7 @@ export class UserController {
     try {
       const { id } = req.params;
 
-      await new userService().delete(id);
+      await new UserService().delete(id);
 
       return successResponseData({
         message: "User deleted successfully.",
@@ -99,7 +99,7 @@ export class UserController {
     res: Response
   ): Promise<void> {
     try {
-      const user = await new userService().login(req.body);
+      const user = await new UserService().login(req.body);
 
       const payload = {
         id: user!._id,
@@ -134,7 +134,7 @@ export class UserController {
     res: Response
   ): Promise<void> {
     try {
-      await new userService().changePassword(req.body);
+      await new UserService().changePassword(req.body);
 
       return successResponseData({
         message: "Password changed successfully.",

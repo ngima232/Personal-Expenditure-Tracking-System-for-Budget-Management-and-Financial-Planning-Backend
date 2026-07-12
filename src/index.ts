@@ -29,8 +29,11 @@ class Server {
   this.app.get("/", (req, res) => {
     res.send("Welcome to Pets Backend");
   });
+  
+   //API Routes
+    this.app.use("/api/auth", proxyRouter.auth());
+    this.app.use("/api", proxyRouter.map());
 
-  this.app.use("/api", proxyRouter.map());
 
   // Error handlers 
   this.app.use(errorHandler.genericErrorHandler);

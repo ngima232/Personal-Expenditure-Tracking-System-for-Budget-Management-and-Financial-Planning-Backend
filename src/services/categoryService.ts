@@ -68,6 +68,7 @@ export class CategoryService {
   async delete(id: string): Promise<any> {
     const deletedData = await categoryModel.findOne({
       _id: id,
+       isDefault: false,
       deletedAt: { $ne: null },
     });
     if (deletedData) {

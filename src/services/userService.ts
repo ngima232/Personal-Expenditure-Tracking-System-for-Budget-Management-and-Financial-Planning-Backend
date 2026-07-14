@@ -125,7 +125,7 @@ export class UserService {
 
       return data;
     } catch (error: any) {
-      throw new Error(`Error fetching employee role: ${error.message}`);
+      throw new Error(`Error fetching user: ${error.message}`);
     }
   }
 

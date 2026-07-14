@@ -12,7 +12,6 @@ export interface InputeCategoryInterface {
   isDefault: boolean
 }
 
-
 export interface CategoryInterface extends Document, ModelTimestampExtend, InputeCategoryInterface {
   _id: Types.ObjectId;
 }
@@ -23,7 +22,3 @@ export interface ArgsCategoryInterface
   type?:string;
   user?: Types.ObjectId | any;
 }
-
-
-
-

@@ -4,6 +4,7 @@ import { authenticateToken } from "../middlewares";
 // import routes
 import { AuthRouter} from './authRoute'
 import {CategoryRoute } from './categoryRoute'
+import {TransactionRoute } from './transactionRoute'
 import { UserRoute} from './userRoute'
 
 class ProxyRouter {
@@ -12,7 +13,8 @@ class ProxyRouter {
 
 private readonly authRoute = { segment: "/", provider: AuthRouter };
  private readonly routes = [
-     {segment : '/category/', provider:CategoryRoute },
+    {segment : '/category/', provider:CategoryRoute },
+    {segment : '/income-expense/', provider:TransactionRoute },
     {segment : '/user/', provider:UserRoute },
  ]
 

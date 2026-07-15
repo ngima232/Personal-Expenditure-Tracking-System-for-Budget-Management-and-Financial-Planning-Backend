@@ -3,6 +3,7 @@ import {IRouteInterface } from '../interfaces';
 import { authenticateToken } from "../middlewares";
 // import routes
 import { AuthRouter} from './authRoute'
+import {BudgetRoute} from './budgetRoute'
 import {CategoryRoute } from './categoryRoute'
 import {TransactionRoute } from './transactionRoute'
 import { UserRoute} from './userRoute'
@@ -11,9 +12,10 @@ class ProxyRouter {
  private static instance: ProxyRouter
  private router: Router = Router();
 
-private readonly authRoute = { segment: "/", provider: AuthRouter };
+ private readonly authRoute = { segment: "/", provider: AuthRouter };
  private readonly routes = [
     {segment : '/category/', provider:CategoryRoute },
+    {segment : '/budget/', provider:BudgetRoute },
     {segment : '/income-expense/', provider:TransactionRoute },
     {segment : '/user/', provider:UserRoute },
  ]

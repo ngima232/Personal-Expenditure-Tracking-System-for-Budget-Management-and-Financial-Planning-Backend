@@ -1,3 +1,4 @@
+export * from './budgetInterface'
 export * from './categoryInterface'
 export * from './IRouterInterface';
 export * from './modelTimestampInterface';

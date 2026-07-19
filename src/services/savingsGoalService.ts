@@ -152,7 +152,7 @@ export class SavingsGoalService {
   // Adds a contribution, bumps currentAmount, and auto-completes the goal if the target is reached
   async addContribution(
     id: string,
-    contribution: { amount: number; note?: string }
+    contribution: { amount: number; date?: any; note?: string }
   ): Promise<SavingsGoalInterface> {
     const goal = await savingsGoalModel.findOne({ _id: id, deletedAt: null });
     if (!goal) {
@@ -162,7 +162,7 @@ export class SavingsGoalService {
     goal.contributions.push({
       amount: contribution.amount,
       note: contribution.note,
-      date: new Date(),
+      date: contribution.date ? contribution.date :new Date(),
     });
     goal.currentAmount = (goal.currentAmount || 0) + contribution.amount;
  

@@ -31,6 +31,7 @@ const updateSavingsGoal = Joi.object({
  
 const addContribution = Joi.object({
   amount: Joi.number().positive().required().label('Amount'),
+  date: Joi.date().optional().label('Date'),
   note: stringSchema.optional().allow('', null).label('Note'),
 });
  

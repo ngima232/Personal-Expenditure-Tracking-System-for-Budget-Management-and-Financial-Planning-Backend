@@ -1,4 +1,4 @@
-# Welcome to personal blog Backend
+# Welcome to PETS Backend
 
 ## Prerequisites
 

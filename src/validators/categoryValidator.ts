@@ -12,7 +12,7 @@ const createCategory = Joi.object<CategoryInterface>({
     .valid(...list(TransactionTypeEnum)),
   icon: stringSchema.label("Icon").optional().allow(null, ""),
   color: Joi.binary().optional().label('Color').allow(null, ""),
- isDefault: booleanSchema.optional().allow(null, "").label("Is Default"),
+ //isDefault: booleanSchema.optional().allow(null, "").label("Is Default"),
 
 });
 
@@ -24,7 +24,7 @@ const updateCategory = Joi.object({
     .valid(...list(TransactionTypeEnum)),
   icon: stringSchema.label("Icon").optional().allow(null, ""),
   color: Joi.binary().optional().label('Color').allow(null, ""),
- isDefault: booleanSchema.optional().allow(null, "").label("Is Default"),
+ //isDefault: booleanSchema.optional().allow(null, "").label("Is Default"),
 });
 
 

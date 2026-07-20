@@ -5,6 +5,7 @@ import { authenticateToken } from "../middlewares";
 import { AuthRouter} from './authRoute'
 import {BudgetRoute} from './budgetRoute'
 import {CategoryRoute } from './categoryRoute'
+import { LoanRoute} from './loanRoute'
 import { SavingsGoalRoute } from './savingsGoalRoute';
 import {TransactionRoute } from './transactionRoute'
 import { UserRoute} from './userRoute'
@@ -18,6 +19,7 @@ class ProxyRouter {
     {segment : '/categories/', provider:CategoryRoute },
     {segment : '/budgets/', provider:BudgetRoute },
     {segment : '/income-expense/', provider:TransactionRoute },
+     {segment : '/loans/', provider:LoanRoute },
     {segment : '/savings-goals/', provider:SavingsGoalRoute },
     {segment : '/user/', provider:UserRoute },
  ]

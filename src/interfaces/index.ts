@@ -1,5 +1,6 @@
 export * from './budgetInterface';
 export * from './categoryInterface';
+export * from './investmentInterface';
 export * from './IRouterInterface';
 export * from './loanInterface';
 export * from './modelTimestampInterface';

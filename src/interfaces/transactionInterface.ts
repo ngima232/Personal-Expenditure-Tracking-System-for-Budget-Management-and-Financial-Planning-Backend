@@ -4,10 +4,10 @@ import { TransactionTypeEnum, PaymentMethodEnum, RecurrenceFrequencyEnum } from 
  export interface InputTransactionInterface {
   title?: string;
   category: Types.ObjectId;
-  type: TransactionTypeEnum;
+  type: TransactionTypeEnum; //income,expense
   amount: number;
   description?: string;
-  paymentMethod?: PaymentMethodEnum;
+  paymentMethod?: PaymentMethodEnum; //cash,card,bank_transfer,mobile_wallet,other
   date: Date;
   user: Types.ObjectId;
   attachment?: string; // receipt image

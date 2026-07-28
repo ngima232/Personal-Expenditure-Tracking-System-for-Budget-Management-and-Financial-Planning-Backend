@@ -168,5 +168,74 @@ export class TransactionController {
       });
     }
   }
+
+
+static async getExpenseForecast(req: CustomRequest, res: Response): Promise<void> {
+  try {
+    const user = req.userId;
+    if (!user) {
+      return errorResponse({ errorMessage: 'Unauthorized', statusCode: 401, res });
+    }
+
+    const { months, alpha, beta } = req.query;
+    const lookback = months ? parseInt(months as string, 10) : 12;
+    const smoothingAlpha = alpha ? parseFloat(alpha as string) : 0.3;
+    const smoothingBeta = beta ? parseFloat(beta as string) : 0.1;
+
+    const forecast = await new TransactionService().getExpenseForecast({
+      user,
+      months: lookback,
+      alpha: smoothingAlpha,
+      beta: smoothingBeta,
+    });
+
+    return successResponseData({
+      data: forecast,
+      message: 'Expense forecast (Holt’s linear trend) generated.',
+      res,
+    });
+  } catch (error: any) {
+    console.error('Error generating expense forecast:', error);
+    return errorResponse({
+      errorMessage: error.message || 'Failed to generate forecast',
+      statusCode: 400,
+      res,
+    });
+  }
+}
+
+// controllers/transaction.controller.ts
+
+static async getCategorySpending(req: CustomRequest, res: Response): Promise<void> {
+  try {
+    const user = req.userId;
+    if (!user) {
+      return errorResponse({ errorMessage: 'Unauthorized', statusCode: 401, res });
+    }
+
+    const { startDate, endDate } = req.query;
+    const start = startDate ? new Date(startDate as string) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const end = endDate ? new Date(endDate as string) : new Date();
+
+    const data = await new TransactionService().getCategorySpending({
+      user,
+      startDate: start,
+      endDate: end,
+    });
+
+    return successResponseData({
+      data,
+      message: 'Category spending retrieved.',
+      res,
+    });
+  } catch (error: any) {
+    console.error('Error getting category spending:', error);
+    return errorResponse({
+      errorMessage: error.message || 'Failed to get category spending',
+      statusCode: 400,
+      res,
+    });
+  }
+}
 }
  

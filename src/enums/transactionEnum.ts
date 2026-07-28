@@ -11,6 +11,7 @@ export enum TransactionTypeEnum {
     MOBILE_WALLET = 'mobile_wallet',
     OTHER = 'other',
   }
+  //cash,card,bank_transfer,mobile_wallet,other
  
 export enum RecurrenceFrequencyEnum {
     DAILY = 'daily',

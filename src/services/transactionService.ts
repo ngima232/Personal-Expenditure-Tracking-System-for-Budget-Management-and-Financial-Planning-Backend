@@ -6,8 +6,8 @@ import {
   ArgsTransactionInterface,
   PaginationMetadata,
 } from "../interfaces";
-import { transactionModel } from "../models";
- 
+import { transactionModel,categoryModel } from "../models";
+import { holtLinearTrend } from '../helpers'
 export class TransactionService {
  
   async create(
@@ -190,5 +190,149 @@ export class TransactionService {
       netBalance: totalIncome - totalExpense,
     };
   }
+
+  async getExpenseForecast({
+  user,
+  months = 12,
+  alpha = 0.3,
+  beta = 0.1,
+}: {
+  user: any;
+  months?: number;
+  alpha?: number;
+  beta?: number;
+}): Promise<{
+  totalForecast: number;
+  breakdown: {
+    category: Types.ObjectId;
+    categoryName: string;
+    monthlyData?: { month: string; total: number }[];
+    forecastedAmount: number;
+  }[];
+}> {
+  // 1. Fetch all expense categories for the user (default + user's own)
+  const categories = await categoryModel
+    .find({
+      type: TransactionTypeEnum.EXPENSE,
+      deletedAt: null,
+      $or: [{ user }, { isDefault: true, user: null }],
+    })
+    .select('_id name')
+    .lean();
+
+  const categoryIds = categories.map((c) => c._id);
+  if (categoryIds.length === 0) {
+    return { totalForecast: 0, breakdown: [] };
+  }
+
+  // 2. Fetch all expense transactions for the user in the last N months
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+
+  const transactions = await transactionModel
+    .find({
+      user,
+      type: TransactionTypeEnum.EXPENSE,
+      category: { $in: categoryIds },
+      date: { $gte: startDate },
+      deletedAt: null,
+    })
+    .select('category amount date')
+    .lean();
+
+  // 3. Group by category and month (YYYY-MM)
+  const grouped = new Map<
+    string,
+    { month: string; total: number }[]
+  >();
+
+  transactions.forEach((t) => {
+    const catId = t.category.toString();
+    const monthKey = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, '0')}`;
+    if (!grouped.has(catId)) {
+      grouped.set(catId, []);
+    }
+    const arr = grouped.get(catId)!;
+    const existing = arr.find((item) => item.month === monthKey);
+    if (existing) {
+      existing.total += t.amount;
+    } else {
+      arr.push({ month: monthKey, total: t.amount });
+    }
+  });
+
+  // 4. Build breakdown per category with Holt's forecast
+  const breakdown = categories.map((cat) => {
+    const monthlyData = grouped.get(cat._id.toString()) || [];
+    // Sort by month (oldest first)
+    monthlyData.sort((a, b) => a.month.localeCompare(b.month));
+    const totals = monthlyData.map((m) => m.total);
+    const forecastedAmount = holtLinearTrend(totals, alpha, beta);
+    return {
+      category: cat._id,
+      categoryName: cat.name,
+      monthlyData: monthlyData.length > 0 ? monthlyData : undefined,
+      forecastedAmount,
+    };
+  });
+
+  // 5. Total forecast
+  const totalForecast = breakdown.reduce((sum, b) => sum + b.forecastedAmount, 0);
+
+  return { totalForecast, breakdown };
+}
+
+// services/transaction.service.ts
+
+async getCategorySpending({
+  user,
+  startDate,
+  endDate,
+}: {
+  user: any
+  startDate?: Date;
+  endDate?: Date;
+}): Promise<{ category: { _id: string; name: string; color?: string }; total: number }[]> {
+  const filter: any = {
+    user,
+    type: 'expense',
+    deletedAt: null,
+  };
+  if (startDate) filter.date = { ...filter.date, $gte: startDate };
+  if (endDate) filter.date = { ...filter.date, $lte: endDate };
+
+  const pipeline:any = [
+    { $match: filter },
+    {
+      $group: {
+        _id: '$category',
+        total: { $sum: '$amount' },
+      },
+    },
+    { $match: { total: { $gt: 0 } } }, // only categories with spending
+    {
+      $lookup: {
+        from: 'categories',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'categoryInfo',
+      },
+    },
+    { $unwind: '$categoryInfo' },
+    {
+      $project: {
+        category: {
+          _id: '$categoryInfo._id',
+          name: '$categoryInfo.name',
+          color: '$categoryInfo.color',
+        },
+        total: 1,
+      },
+    },
+    { $sort: { total: -1 } },
+  ];
+
+  return await transactionModel.aggregate(pipeline);
+}
 }
  

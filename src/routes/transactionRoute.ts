@@ -26,7 +26,18 @@ export class TransactionRoute extends RouterClass {
       .get(
         exceptionHandler(TransactionController.getSummary)
       )
- 
+    this.router.get(
+      '/forecast',
+      exceptionHandler(TransactionController.getExpenseForecast)
+    );
+    
+    // routes/transaction.route.ts
+
+this.router.get(
+  '/category-spending',
+  exceptionHandler(TransactionController.getCategorySpending)
+);
+
     this.router
       .route("/:id")
       .patch(

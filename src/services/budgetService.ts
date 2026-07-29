@@ -74,6 +74,11 @@ export class BudgetService {
     category,
     isActive,
     user,
+    startDate,
+    endDate,
+    minAmount,
+    maxAmount,
+
   }: ArgsBudgetInterface): Promise<{
     metadata?: PaginationMetadata;
     data: { count?: number; rows: BudgetInterface[] };
@@ -90,8 +95,28 @@ export class BudgetService {
         deletedAt: null,
       };
  
+      // if (query) {
+      //   filter.name = { $regex: query, $options: "i" };
+      // }
+      
       if (query) {
-        filter.name = { $regex: query, $options: "i" };
+        filter.name = {
+          $regex: query,
+          $options: "i",
+        };
+      }
+
+      
+      if (startDate || endDate) {
+        filter.date = {};
+        if (startDate) filter.date.$gte = new Date(startDate);
+        if (endDate) filter.date.$lte = new Date(endDate);
+      }
+ 
+      if (minAmount || maxAmount) {
+        filter.amount = {};
+        if (minAmount) filter.limitAmount.$gte = minAmount;
+        if (maxAmount) filter.limitAmount.$lte = maxAmount;
       }
  
       if (period) filter.period = period;

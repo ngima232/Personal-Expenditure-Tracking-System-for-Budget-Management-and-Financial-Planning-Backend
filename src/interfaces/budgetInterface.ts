@@ -25,4 +25,8 @@ export interface ArgsBudgetInterface extends PaginationOrderSearchExtend {
   period?: string;
   isActive?: boolean;
   name?: string;
+  startDate?: string;
+  endDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
 }

@@ -73,7 +73,7 @@ export class UserService {
   ): Promise<UserInterface | null> {
 
     const EncryptedEmail = await Encoding.encode(input.email);
-    console.log("EncryptedEmail",EncryptedEmail)
+   
     const emailExist = await userModel.findOne({
       email: EncryptedEmail,
       deletedAt: null,
@@ -99,6 +99,15 @@ export class UserService {
           if (!updatedData) throw new Error(`Failed to update device Token `);
        
       }
+       
+        let decodedEmail;
+        try {
+          decodedEmail = await Encoding.decode(emailExist.email);
+        } catch (err) {
+          console.warn('Failed to decode email, returning encoded version as fallback');
+          decodedEmail = emailExist.email; // fallback: keep encoded
+        }
+        emailExist.email = decodedEmail;
       return emailExist;
   }
 

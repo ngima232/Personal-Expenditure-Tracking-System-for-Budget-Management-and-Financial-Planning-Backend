@@ -8,7 +8,7 @@
     "start": "node dist/index.js",
     "build:watch": "tsc --watch",
     "start:watch": "nodemon dist/index.js",
-    "start:dev": "nodemon --exec ts-node --type-check src/index.ts",
+    "dev": "nodemon --exec ts-node --type-check src/index.ts",
     "seed:categories": "node dist/seeders/defaultCategproes.js",
     "seed:trainsaction": "node dist/seeders/defaultTrainsaction.js"
 

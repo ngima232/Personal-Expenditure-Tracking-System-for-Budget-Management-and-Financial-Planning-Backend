@@ -1,7 +1,18 @@
+
 export enum InvestmentTypeEnum {
-  SHARE = 'share',
-  MUTUAL_FUNDS = 'mutualFunds',
-  SIP = 'sip',
-  REAL_ESTATE = 'realEState',
-  OTHERS = 'others',
+  STOCK = "STOCK",
+  ETF = "ETF",
+  MUTUAL_FUND = "MUTUAL_FUND",
+  BOND = "BOND",
+  FIXED_DEPOSIT = "FIXED_DEPOSIT",
+  GOLD = "GOLD",
+  SILVER = "SILVER",
+  REAL_ESTATE = "REAL_ESTATE",
+  CRYPTO = "CRYPTO",
+  PENSION = "PENSION",
+  PROVIDENT_FUND = "PROVIDENT_FUND",
+  BUSINESS = "BUSINESS",
+  STARTUP = "STARTUP",
+  COMMODITY = "COMMODITY",
+  OTHER = "OTHER",
 }

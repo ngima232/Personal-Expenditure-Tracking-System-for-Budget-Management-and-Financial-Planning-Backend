@@ -19,11 +19,9 @@ export const seedTransactions = async () => {
     });
    
   // Get user
-  const user = await userModel.findOne({});
+  const user = mongoose.ObjectId('6a78c0c6d8c6c4e8ab33cc4a')
 
-  if (!user) {
-    throw new Error("User not found");
-  }
+ 
 
   // Get all default categories
   const categories = await categoryModel.find({ isDefault: true});

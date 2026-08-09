@@ -20,4 +20,8 @@ export enum RecurrenceFrequencyEnum {
     YEARLY = 'yearly',
   }
 
-  
+  export enum ForecastMethod {
+  NO_FORECAST = "NO_FORECAST",
+  WEIGHTED_MOVING_AVERAGE = "WEIGHTED_MOVING_AVERAGE",
+  HOLT_LINEAR_TREND = "HOLT_LINEAR_TREND",
+}

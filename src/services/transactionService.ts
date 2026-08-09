@@ -1,5 +1,5 @@
 import { Types, Document } from 'mongoose';
-import { TransactionTypeEnum, PaymentMethodEnum, RecurrenceFrequencyEnum } from '../enums';
+import { TransactionTypeEnum, PaymentMethodEnum, RecurrenceFrequencyEnum,ForecastMethod } from '../enums';
 import {
   InputTransactionInterface,
   TransactionInterface,
@@ -8,6 +8,91 @@ import {
 } from "../interfaces";
 import { transactionModel,categoryModel } from "../models";
 import { holtLinearTrend } from '../helpers'
+import {forecastExpense  } from "../helpers";
+function getMonthKey(date: Date): string {
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}`;
+}
+
+
+function formatMonth(date: Date): string {
+  return date.toLocaleString("en-GB", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+
+function fillMissingMonths(
+  history: {
+    month: string;
+    amount: number;
+  }[],
+  currentMonthStart: Date
+): {
+  month: string;
+  amount: number;
+}[] {
+
+  if (!history.length) {
+    return [];
+  }
+
+  /**
+   * First recorded month for this category.
+   */
+  const [firstYear, firstMonth] =
+    history[0].month
+      .split("-")
+      .map(Number);
+
+  let cursor = new Date(
+    firstYear,
+    firstMonth - 1,
+    1
+  );
+
+  const result: {
+    month: string;
+    amount: number;
+  }[] = [];
+
+  const historyMap =
+    new Map<string, number>();
+
+  history.forEach((item) => {
+    historyMap.set(
+      item.month,
+      item.amount
+    );
+  });
+
+  /**
+   * Continue until the month
+   * BEFORE the current month.
+   */
+  while (cursor < currentMonthStart) {
+
+    const monthKey =
+      getMonthKey(cursor);
+
+    result.push({
+      month: monthKey,
+
+      amount:
+        historyMap.get(monthKey) || 0,
+    });
+
+    cursor = new Date(
+      cursor.getFullYear(),
+      cursor.getMonth() + 1,
+      1
+    );
+  }
+
+  return result;
+}
 export class TransactionService {
  
   async create(
@@ -191,96 +276,96 @@ export class TransactionService {
     };
   }
 
-  async getExpenseForecast({
-  user,
-  months = 12,
-  alpha = 0.3,
-  beta = 0.1,
-}: {
-  user: any;
-  months?: number;
-  alpha?: number;
-  beta?: number;
-}): Promise<{
-  totalForecast: number;
-  breakdown: {
-    category: Types.ObjectId;
-    categoryName: string;
-    monthlyData?: { month: string; total: number }[];
-    forecastedAmount: number;
-  }[];
-}> {
-  // 1. Fetch all expense categories for the user (default + user's own)
-  const categories = await categoryModel
-    .find({
-      type: TransactionTypeEnum.EXPENSE,
-      deletedAt: null,
-      $or: [{ user }, { isDefault: true, user: null }],
-    })
-    .select('_id name')
-    .lean();
+//   async getExpenseForecast({
+//   user,
+//   months = 12,
+//   alpha = 0.3,
+//   beta = 0.1,
+// }: {
+//   user: any;
+//   months?: number;
+//   alpha?: number;
+//   beta?: number;
+// }): Promise<{
+//   totalForecast: number;
+//   breakdown: {
+//     category: Types.ObjectId;
+//     categoryName: string;
+//     monthlyData?: { month: string; total: number }[];
+//     forecastedAmount: number;
+//   }[];
+// }> {
+//   // 1. Fetch all expense categories for the user (default + user's own)
+//   const categories = await categoryModel
+//     .find({
+//       type: TransactionTypeEnum.EXPENSE,
+//       deletedAt: null,
+//       $or: [{ user }, { isDefault: true, user: null }],
+//     })
+//     .select('_id name')
+//     .lean();
 
-  const categoryIds = categories.map((c) => c._id);
-  if (categoryIds.length === 0) {
-    return { totalForecast: 0, breakdown: [] };
-  }
+//   const categoryIds = categories.map((c) => c._id);
+//   if (categoryIds.length === 0) {
+//     return { totalForecast: 0, breakdown: [] };
+//   }
 
-  // 2. Fetch all expense transactions for the user in the last N months
-  const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - months);
+//   // 2. Fetch all expense transactions for the user in the last N months
+//   const startDate = new Date();
+//   startDate.setMonth(startDate.getMonth() - months);
 
-  const transactions = await transactionModel
-    .find({
-      user,
-      type: TransactionTypeEnum.EXPENSE,
-      category: { $in: categoryIds },
-      date: { $gte: startDate },
-      deletedAt: null,
-    })
-    .select('category amount date')
-    .lean();
+//   const transactions = await transactionModel
+//     .find({
+//       user,
+//       type: TransactionTypeEnum.EXPENSE,
+//       category: { $in: categoryIds },
+//       date: { $gte: startDate },
+//       deletedAt: null,
+//     })
+//     .select('category amount date')
+//     .lean();
 
-  // 3. Group by category and month (YYYY-MM)
-  const grouped = new Map<
-    string,
-    { month: string; total: number }[]
-  >();
+//   // 3. Group by category and month (YYYY-MM)
+//   const grouped = new Map<
+//     string,
+//     { month: string; total: number }[]
+//   >();
 
-  transactions.forEach((t) => {
-    const catId = t.category.toString();
-    const monthKey = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, '0')}`;
-    if (!grouped.has(catId)) {
-      grouped.set(catId, []);
-    }
-    const arr = grouped.get(catId)!;
-    const existing = arr.find((item) => item.month === monthKey);
-    if (existing) {
-      existing.total += t.amount;
-    } else {
-      arr.push({ month: monthKey, total: t.amount });
-    }
-  });
+//   transactions.forEach((t) => {
+//     const catId = t.category.toString();
+//     const monthKey = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, '0')}`;
+//     if (!grouped.has(catId)) {
+//       grouped.set(catId, []);
+//     }
+//     const arr = grouped.get(catId)!;
+//     const existing = arr.find((item) => item.month === monthKey);
+//     if (existing) {
+//       existing.total += t.amount;
+//     } else {
+//       arr.push({ month: monthKey, total: t.amount });
+//     }
+//   });
 
-  // 4. Build breakdown per category with Holt's forecast
-  const breakdown = categories.map((cat) => {
-    const monthlyData = grouped.get(cat._id.toString()) || [];
-    // Sort by month (oldest first)
-    monthlyData.sort((a, b) => a.month.localeCompare(b.month));
-    const totals = monthlyData.map((m) => m.total);
-    const forecastedAmount = holtLinearTrend(totals, alpha, beta);
-    return {
-      category: cat._id,
-      categoryName: cat.name,
-      monthlyData: monthlyData.length > 0 ? monthlyData : undefined,
-      forecastedAmount,
-    };
-  });
+//   // 4. Build breakdown per category with Holt's forecast
+//   const breakdown = categories.map((cat) => {
+//     const monthlyData = grouped.get(cat._id.toString()) || [];
+//     // Sort by month (oldest first)
+//     monthlyData.sort((a, b) => a.month.localeCompare(b.month));
+//     const totals = monthlyData.map((m) => m.total);
+//     const forecastedAmount = holtLinearTrend(totals, alpha, beta);
+//     return {
+//       category: cat._id,
+//       categoryName: cat.name,
+//       monthlyData: monthlyData.length > 0 ? monthlyData : undefined,
+//       forecastedAmount,
+//     };
+//   });
 
-  // 5. Total forecast
-  const totalForecast = breakdown.reduce((sum, b) => sum + b.forecastedAmount, 0);
+//   // 5. Total forecast
+//   const totalForecast = breakdown.reduce((sum, b) => sum + b.forecastedAmount, 0);
 
-  return { totalForecast, breakdown };
-}
+//   return { totalForecast, breakdown };
+// }
 
 // services/transaction.service.ts
 
@@ -334,5 +419,337 @@ async getCategorySpending({
 
   return await transactionModel.aggregate(pipeline);
 }
+
+async getExpenseForecast({
+  user,
+}: {
+  user: Types.ObjectId | string | any;
+}): Promise<any> {
+
+  /**
+   * CURRENT MONTH
+   *
+   * Example:
+   * Today = 09 August 2026
+   *
+   * currentMonthStart = 01 August 2026
+   *
+   * We DO NOT use August transactions for forecasting
+   * because August is incomplete.
+   */
+  const now = new Date();
+
+  const currentMonthStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1
+  );
+
+  /**
+   * Previous month
+   *
+   * Example:
+   * 01 July 2026 -> 01 August 2026
+   */
+  const previousMonthStart = new Date(
+    now.getFullYear(),
+    now.getMonth() - 1,
+    1
+  );
+
+  /**
+   * -------------------------------------
+   * 1. GET EXPENSE CATEGORIES
+   * -------------------------------------
+   *
+   * Includes:
+   * - user's custom categories
+   * - system/default categories
+   */
+  const categories = await categoryModel
+    .find({
+      type: TransactionTypeEnum.EXPENSE,
+      deletedAt: null,
+      $or: [
+        { user },
+        {
+          isDefault: true,
+          user: null,
+        },
+      ],
+    })
+    .select("_id name icon color")
+    .lean();
+
+  if (!categories.length) {
+    return {
+      forecastMonth: formatMonth(currentMonthStart),
+      previousMonth: formatMonth(previousMonthStart),
+
+      totalPreviousMonthExpense: 0,
+      totalForecastedExpense: 0,
+
+      categories: [],
+    };
+  }
+
+  const categoryIds = categories.map(
+    (category) => category._id
+  );
+
+  /**
+   * -------------------------------------
+   * 2. GET ALL HISTORICAL EXPENSES
+   * -------------------------------------
+   *
+   * IMPORTANT:
+   * date < currentMonthStart
+   *
+   * This means current month's partial
+   * transactions are NOT used for forecasting.
+   */
+  const transactions = await transactionModel
+    .find({
+      user,
+      type: TransactionTypeEnum.EXPENSE,
+
+      category: {
+        $in: categoryIds,
+      },
+
+      date: {
+        $lt: currentMonthStart,
+      },
+
+      deletedAt: null,
+    })
+    .select("category amount date")
+    .sort({ date: 1 })
+    .lean();
+
+  /**
+   * -------------------------------------
+   * 3. GROUP EXPENSES
+   * CATEGORY -> MONTH -> TOTAL
+   * -------------------------------------
+   *
+   * Structure:
+   *
+   * {
+   *   foodCategoryId: {
+   *      "2026-05": 200,
+   *      "2026-06": 250,
+   *      "2026-07": 300
+   *   }
+   * }
+   */
+
+  const groupedData = new Map<
+    string,
+    Map<string, number>
+  >();
+
+  for (const transaction of transactions) {
+
+    const categoryId =
+      transaction.category.toString();
+
+    const monthKey = getMonthKey(
+      transaction.date
+    );
+
+    if (!groupedData.has(categoryId)) {
+      groupedData.set(
+        categoryId,
+        new Map<string, number>()
+      );
+    }
+
+    const categoryMonths =
+      groupedData.get(categoryId)!;
+
+    const currentTotal =
+      categoryMonths.get(monthKey) || 0;
+
+    categoryMonths.set(
+      monthKey,
+      currentTotal + transaction.amount
+    );
+  }
+
+  /**
+   * -------------------------------------
+   * 4. BUILD CATEGORY FORECAST
+   * -------------------------------------
+   */
+
+  const categoryForecasts = categories.map(
+    (category) => {
+
+      const categoryId =
+        category._id.toString();
+
+      const monthlyMap =
+        groupedData.get(categoryId) ||
+        new Map<string, number>();
+
+      /**
+       * Sort monthly data oldest -> newest.
+       */
+      const monthlyHistory =
+        Array.from(monthlyMap.entries())
+          .map(([month, amount]) => ({
+            month,
+            amount: Number(
+              amount.toFixed(2)
+            ),
+          }))
+          .sort((a, b) =>
+            a.month.localeCompare(b.month)
+          );
+
+      /**
+       * -----------------------------------
+       * IMPORTANT
+       * -----------------------------------
+       *
+       * Fill missing months with 0.
+       *
+       * Example:
+       *
+       * May = £200
+       * June = no spending
+       * July = £300
+       *
+       * Forecast input should be:
+       *
+       * [200, 0, 300]
+       *
+       * NOT:
+       *
+       * [200, 300]
+       */
+      const continuousHistory =
+        fillMissingMonths(
+          monthlyHistory,
+          currentMonthStart
+        );
+
+      const totals =
+        continuousHistory.map(
+          (item) => item.amount
+        );
+
+      /**
+       * Select algorithm automatically.
+       */
+      const forecastResult =
+        forecastExpense(totals);
+
+      /**
+       * Previous month spending
+       */
+      const previousMonthKey =
+        getMonthKey(previousMonthStart);
+
+      const previousMonthExpense =
+        monthlyMap.get(previousMonthKey) || 0;
+
+      return {
+        category: category._id,
+
+        categoryName: category.name,
+
+        icon: category.icon,
+
+        color: category.color,
+
+        previousMonthExpense:
+          Number(
+            previousMonthExpense.toFixed(2)
+          ),
+
+        forecastedAmount:
+          forecastResult.forecast,
+
+        forecastingMethod:
+          forecastResult.method,
+
+        historicalMonths:
+          totals.length,
+
+        monthlyHistory:
+          continuousHistory,
+      };
+    }
+  );
+
+  /**
+   * -------------------------------------
+   * 5. TOTAL PREVIOUS MONTH EXPENSE
+   * -------------------------------------
+   */
+
+  const totalPreviousMonthExpense =
+    categoryForecasts.reduce(
+      (sum, category) =>
+        sum +
+        category.previousMonthExpense,
+      0
+    );
+
+  /**
+   * -------------------------------------
+   * 6. TOTAL FORECAST
+   * -------------------------------------
+   */
+
+  const totalForecastedExpense =
+    categoryForecasts.reduce(
+      (sum, category) => {
+
+        if (
+          category.forecastedAmount === null
+        ) {
+          return sum;
+        }
+
+        return (
+          sum +
+          category.forecastedAmount
+        );
+      },
+      0
+    );
+
+  /**
+   * -------------------------------------
+   * 7. RESPONSE
+   * -------------------------------------
+   */
+
+  return {
+    previousMonth:
+      formatMonth(previousMonthStart),
+
+    forecastMonth:
+      formatMonth(currentMonthStart),
+
+    totalPreviousMonthExpense:
+      Number(
+        totalPreviousMonthExpense.toFixed(2)
+      ),
+
+    totalForecastedExpense:
+      Number(
+        totalForecastedExpense.toFixed(2)
+      ),
+
+    categories:
+      categoryForecasts,
+  };
+}
+
+
 }
  

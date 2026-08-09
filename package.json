@@ -10,8 +10,14 @@
     "start:watch": "nodemon dist/index.js",
     "dev": "nodemon --exec ts-node --type-check src/index.ts",
     "seed:categories": "node dist/seeders/defaultCategproes.js",
-    "seed:trainsaction": "node dist/seeders/defaultTrainsaction.js"
-
+    "seed:trainsaction": "node dist/seeders/defaultTrainsaction.js",
+    "seed:one": "node dist/seeders/seed01Transactions.js",
+    "seed:two": "node dist/seeders/seed02Transactions.js",
+    "seed:three": "node dist/seeders/seed03Transactions.js",
+    "seed:four": "node dist/seeders/seed04Transactions.js",
+    "seed:five": "node dist/seeders/seed05Transactions.js",
+    "seed:six": "node dist/seeders/seed06Transactions.js",
+    "seed:seven": "node dist/seeders/seed07Transactions.js"
   },
   "keywords": [],
   "author": "",

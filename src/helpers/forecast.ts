@@ -1,29 +1,115 @@
+import {ForecastMethod} from '../enums'
+
+/**
+ * Weighted Moving Average
+ *
+ * Newer months receive greater weight.
+ *
+ * Example:
+ * data = [100, 200, 300]
+ *
+ * weights = [1, 2, 3]
+ *
+ * forecast =
+ * (100 * 1 + 200 * 2 + 300 * 3) / (1 + 2 + 3)
+ */
+export function weightedMovingAverage(data: number[]): number {
+  if (!data.length) return 0;
+
+  let weightedTotal = 0;
+  let totalWeight = 0;
+
+  data.forEach((value, index) => {
+    const weight = index + 1;
+
+    weightedTotal += value * weight;
+    totalWeight += weight;
+  });
+
+  if (totalWeight === 0) return 0;
+
+  return Math.max(
+    Number((weightedTotal / totalWeight).toFixed(2)),
+    0
+  );
+}
 
 
-export function holtLinearTrend(data: number[], alpha: number = 0.3, beta: number = 0.1): number {
+/**
+ * Holt's Linear Trend Method
+ *
+ * Suitable when more historical observations are available
+ * because it estimates both:
+ *
+ * 1. Level
+ * 2. Trend
+ */
+export function holtLinearTrend(
+  data: number[],
+  alpha: number = 0.4,
+  beta: number = 0.2
+): number {
   const n = data.length;
+
   if (n === 0) return 0;
-  if (n === 1) return data[0];
-  if (n === 2) {
-    // With only two points, we can only do linear extrapolation
-    return data[1] + (data[1] - data[0]);
+
+  if (n === 1) {
+    return Number(data[0].toFixed(2));
   }
 
-  // Initial level and trend using first two points
   let level = data[0];
   let trend = data[1] - data[0];
 
-  // Apply Holt's method for the remaining points
   for (let i = 1; i < n; i++) {
-    const prevLevel = level;
-    const prevTrend = trend;
-    // Update level
-    level = alpha * data[i] + (1 - alpha) * (prevLevel + prevTrend);
-    // Update trend
-    trend = beta * (level - prevLevel) + (1 - beta) * prevTrend;
+    const previousLevel = level;
+
+    level =
+      alpha * data[i] +
+      (1 - alpha) * (level + trend);
+
+    trend =
+      beta * (level - previousLevel) +
+      (1 - beta) * trend;
   }
 
-  // Forecast for next period (k = 1)
   const forecast = level + trend;
-  return Math.max(forecast, 0); // expenses cannot be negative
+
+  // Expenditure cannot be negative
+  return Math.max(
+    Number(forecast.toFixed(2)),
+    0
+  );
+}
+
+
+/**
+ * Select forecasting algorithm according to the
+ * number of completed monthly observations.
+ *
+ * 0 months  -> No Forecast
+ * 1-3 months -> Weighted Moving Average
+ * 4+ months -> Holt's Linear Trend
+ */
+export function forecastExpense(data: number[]): {
+  forecast: number | null;
+  method: ForecastMethod;
+} {
+  if (data.length === 0) {
+    return {
+      forecast: null,
+      method: ForecastMethod.NO_FORECAST,
+    };
+  }
+
+  if (data.length <= 3) {
+    return {
+      forecast: weightedMovingAverage(data),
+      method: ForecastMethod.WEIGHTED_MOVING_AVERAGE,
+    };
+  }
+
+  return {
+    forecast: holtLinearTrend(data),
+    method: ForecastMethod.HOLT_LINEAR_TREND,
+  };
 }

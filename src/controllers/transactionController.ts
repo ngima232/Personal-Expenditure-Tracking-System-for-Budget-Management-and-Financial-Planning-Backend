@@ -170,39 +170,39 @@ export class TransactionController {
   }
 
 
-static async getExpenseForecast(req: CustomRequest, res: Response): Promise<void> {
-  try {
-    const user = req.userId;
-    if (!user) {
-      return errorResponse({ errorMessage: 'Unauthorized', statusCode: 401, res });
-    }
+// static async getExpenseForecast(req: CustomRequest, res: Response): Promise<void> {
+//   try {
+//     const user = req.userId;
+//     if (!user) {
+//       return errorResponse({ errorMessage: 'Unauthorized', statusCode: 401, res });
+//     }
 
-    const { months, alpha, beta } = req.query;
-    const lookback = months ? parseInt(months as string, 10) : 12;
-    const smoothingAlpha = alpha ? parseFloat(alpha as string) : 0.3;
-    const smoothingBeta = beta ? parseFloat(beta as string) : 0.1;
+//     const { months, alpha, beta } = req.query;
+//     const lookback = months ? parseInt(months as string, 10) : 12;
+//     const smoothingAlpha = alpha ? parseFloat(alpha as string) : 0.3;
+//     const smoothingBeta = beta ? parseFloat(beta as string) : 0.1;
 
-    const forecast = await new TransactionService().getExpenseForecast({
-      user,
-      months: lookback,
-      alpha: smoothingAlpha,
-      beta: smoothingBeta,
-    });
+//     const forecast = await new TransactionService().getExpenseForecast({
+//       user,
+//       months: lookback,
+//       alpha: smoothingAlpha,
+//       beta: smoothingBeta,
+//     });
 
-    return successResponseData({
-      data: forecast,
-      message: 'Expense forecast (Holt’s linear trend) generated.',
-      res,
-    });
-  } catch (error: any) {
-    console.error('Error generating expense forecast:', error);
-    return errorResponse({
-      errorMessage: error.message || 'Failed to generate forecast',
-      statusCode: 400,
-      res,
-    });
-  }
-}
+//     return successResponseData({
+//       data: forecast,
+//       message: 'Expense forecast (Holt’s linear trend) generated.',
+//       res,
+//     });
+//   } catch (error: any) {
+//     console.error('Error generating expense forecast:', error);
+//     return errorResponse({
+//       errorMessage: error.message || 'Failed to generate forecast',
+//       statusCode: 400,
+//       res,
+//     });
+//   }
+// }
 
 // controllers/transaction.controller.ts
 
@@ -233,6 +233,55 @@ static async getCategorySpending(req: CustomRequest, res: Response): Promise<voi
     return errorResponse({
       errorMessage: error.message || 'Failed to get category spending',
       statusCode: 400,
+      res,
+    });
+  }
+}
+static async getExpenseForecast(
+  req: CustomRequest,
+  res: Response
+): Promise<void> {
+  try {
+
+    const user = req.userId;
+
+    if (!user) {
+      return errorResponse({
+        errorMessage: "Unauthorized",
+        statusCode: 401,
+        res,
+      });
+    }
+
+    const data =
+      await new TransactionService()
+        .getExpenseForecast({
+          user,
+        });
+
+    return successResponseData({
+      data,
+
+      message:
+        "Category-based expenditure forecast generated successfully.",
+
+      res,
+    });
+
+  } catch (error: any) {
+
+    console.error(
+      "Error generating expenditure forecast:",
+      error
+    );
+
+    return errorResponse({
+      errorMessage:
+        error.message ||
+        "Failed to generate expenditure forecast",
+
+      statusCode: 400,
+
       res,
     });
   }

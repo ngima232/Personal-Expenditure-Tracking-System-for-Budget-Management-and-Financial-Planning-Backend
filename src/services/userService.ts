@@ -29,6 +29,17 @@ export class UserService {
 
     const updatedData = await  userModel.findByIdAndUpdate(id, updates, { new: true });
     if (!updatedData) throw new Error(`Failed to update id : ${id} `)
+
+       let decodedEmail;
+        try {
+          decodedEmail = await Encoding.decode(updatedData.email);
+        } catch (err) {
+          console.warn('Failed to decode email, returning encoded version as fallback');
+          decodedEmail = updatedData.email; // fallback: keep encoded
+        }
+        
+        updatedData.email = decodedEmail;
+
     return updatedData;
   }
 
@@ -130,7 +141,6 @@ export class UserService {
         let decodedEmail;
         try {
           decodedEmail = await Encoding.decode(emailExist.email);
-          console.log("decodedEmail-->",decodedEmail)
         } catch (err) {
           console.warn('Failed to decode email, returning encoded version as fallback');
           decodedEmail = emailExist.email; // fallback: keep encoded
@@ -155,7 +165,15 @@ export class UserService {
         throw new Error(`user id : ${id} is not found`);
       }
      
-
+       let decodedEmail;
+        try {
+          decodedEmail = await Encoding.decode(userExist.email);
+        } catch (err) {
+          console.warn('Failed to decode email, returning encoded version as fallback');
+          decodedEmail = userExist.email; // fallback: keep encoded
+        }
+        
+        userExist.email = decodedEmail;
       return userExist;
     } catch (error: any) {
       throw new Error(`Error fetching user: ${error.message}`);

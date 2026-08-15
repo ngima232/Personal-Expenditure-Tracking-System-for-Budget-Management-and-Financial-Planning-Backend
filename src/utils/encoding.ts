@@ -2,38 +2,30 @@ import CryptoJS from 'crypto-js';
 
 class Encoding {
   private static instance: Encoding;
-
   private constructor() {}
 
   static get(): Encoding {
     if (!Encoding.instance) {
       Encoding.instance = new Encoding();
     }
-
     return Encoding.instance;
   }
 
-  encode(data: string): string {
+  async encode(data: string): Promise<string> {
     try {
-      return CryptoJS.enc.Base64.stringify(
-        CryptoJS.enc.Utf8.parse(data)
-      );
+      const encodedData = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(data));
+      return encodedData;
     } catch (error) {
-      console.error('Encoding error:', error);
       throw new Error('Error encoding data');
     }
   }
 
-  decode(encodedData: string): string {
+  async decode(encodedData: string): Promise<string> {
     try {
-      console.log("encodedData-->",encodedData)
-      const bytes = CryptoJS.enc.Base64.parse(encodedData);
-      console.log("bytes-->",bytes)
-       const updatedData = CryptoJS.enc.Utf8.stringify(bytes);
-          console.log("updatedData-->",updatedData)
-       return updatedData
+      const decodedText = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(encodedData));
+      console.log("decodedText----->",decodedText)
+      return decodedText;
     } catch (error) {
-      console.error('Decoding error:', error);
       throw new Error('Error decoding data');
     }
   }

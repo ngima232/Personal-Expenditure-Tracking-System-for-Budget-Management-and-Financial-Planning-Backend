@@ -4,7 +4,7 @@ import { AuthProviderEnum} from '../enums'
 const userSchema = new Schema<UserInterface>(
   {
     name: { type: String, required: true },
-    email: { type: String, unique: true , required: true, lowercase: true, trim: true},
+    email: { type: String, unique: true , required: true},
     // password: {type: String,required: false,select: false},
     password: {type: String,required: false},
     image: { type: String, required: false },

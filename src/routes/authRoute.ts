@@ -15,6 +15,13 @@ export class AuthRouter extends RouterClass {
   }
 
   define(): void {
+   
+    
+   this.router
+       .route("/me/:id")
+        .get(
+            exceptionHandler(UserController.me)
+          )
 
      this.router
     .route("/register")

@@ -143,6 +143,22 @@ export class UserService {
     return dataExists;
   }
 
+   async me(id: string): Promise<UserInterface | null> {
+    try {
+      const userExist = await userModel
+        .findOne({ _id: id, deletedAt: null })
+
+      if (!userExist) {
+        throw new Error(`user id : ${id} is not found`);
+      }
+     
+
+      return userExist;
+    } catch (error: any) {
+      throw new Error(`Error fetching user: ${error.message}`);
+    }
+  }
+
    async getById(id: string): Promise<GetUserInterface | null> {
     try {
       const userExist = await userModel

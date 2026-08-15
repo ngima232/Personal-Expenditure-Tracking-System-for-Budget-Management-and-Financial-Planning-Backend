@@ -5,7 +5,7 @@ import {
   errorResponse,
   JWT,
 } from "../utils";
-
+import { CustomRequest } from "../middlewares";
 export class UserController {
 
   constructor() {}
@@ -165,5 +165,28 @@ export class UserController {
     }
   }
 
+   static async me(req: CustomRequest, res: Response): Promise<void> {
+       const { id } = req.params;
+  
+  
+      try {
+         const user =await new UserService().me(id);
+  
+       return successResponseData({
+        data: {
+          user
+        },
+        message: "Login successful.",
+        res,
+      });
+      } catch (error: any) {
+        console.error("Error getMyInvestments:", error);
+        return errorResponse({
+          errorMessage: error,
+          statusCode: 404,
+          res,
+        });
+      }
+    }
 }
 

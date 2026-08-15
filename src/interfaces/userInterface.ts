@@ -10,6 +10,7 @@ export interface InputeUserInterface {
   googleId?: string;
   authProvider?:AuthProviderEnum
   deviceToken?:string
+    otp?: number;
 }
 
 
@@ -32,4 +33,15 @@ export interface UserLogin {
 export interface GetUserInterface {
   id: any | string;
   name: string;
+}
+
+export interface ConfirmForgotPasswordInterface {
+  officeEmail: string;
+  otp: number;
+  newPassword: string;
+}
+
+export interface UpdatePassword {
+  oldPassword: string;
+  newPassword: string;
 }

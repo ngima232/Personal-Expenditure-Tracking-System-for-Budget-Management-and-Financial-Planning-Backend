@@ -43,4 +43,8 @@ const changePassword = Joi.object({
     .required(),
 });
 
-export { createUser, updateUser ,login,changePassword};
+const forgotPassword = Joi.object({
+  email: emailSchema.label("Email").required().trim(),
+});
+
+export { createUser, updateUser ,login,changePassword,forgotPassword};

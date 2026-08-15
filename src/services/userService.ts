@@ -1,12 +1,12 @@
 import { InputeUserInterface, UserInterface,ChangePassword ,UserLogin,GetUserInterface} from '../interfaces';
 import { userModel } from '../models'
-import { Password,  Encoding} from "../utils";
+import { Password,  Encoding,EmailService} from "../utils";
 export class UserService {
 
   async create(input: InputeUserInterface): Promise<UserInterface> {
     const originalEmail = input.email
     if (input.email) {
-               input.email = await Encoding.encode(input.email);
+               input.email = await Encoding.encode(input.email).toLowerCase();
           }
     const dataExists = await  userModel.findOne({ email: input.email, deletedAt: null });
     if (dataExists) throw new Error(`user with email: ${originalEmail} is already exists!`);
@@ -23,7 +23,7 @@ export class UserService {
     })
     if (dataExists) throw new Error(`Given id: ${id} is not found or already deleted`);
      if (updates.email) {
-          updates.email = await Encoding.encode(updates.email);
+          updates.email = await Encoding.encode(updates.email).toLowerCase();
       }
 
     const updatedData = await  userModel.findByIdAndUpdate(id, updates, { new: true });
@@ -135,6 +135,45 @@ export class UserService {
       return data;
     } catch (error: any) {
       throw new Error(`Error fetching user: ${error.message}`);
+    }
+  }
+
+   async forgotPassword(email: string): Promise<Boolean> {
+    try {
+      console.log("email===>",email)
+      const encodedInputEmail = await Encoding.encode(email);
+      console.log("encodedInputEmail===>",encodedInputEmail)
+      const userExist = await userModel.findOne({
+        email: encodedInputEmail,
+        deletedAt: null,
+      });
+  console.log("userExist===>",userExist)
+      if (!userExist)
+        throw new Error(`User with email ${email} does not exist.`);
+      const otp = Math.floor(Math.random() * 9000) + 1000;
+      const updates = { otp };
+      console.log("updates===>",updates)
+      const updatedEmployee = await userModel.findByIdAndUpdate(
+        userExist._id,
+        updates,
+        { new: true },
+      );
+      if (!updatedEmployee) {
+        return false;
+      }
+      try {
+          console.log("userExist.emaill===>",userExist.email)
+     //   const email = await Encoding.decode(userExist.email);
+         console.log("updates email===>",email)
+        const subject = "Password Reset Request";
+        const body = `<p>Dear ${userExist.name},\n\nYour OTP for password reset is: ${otp}\n\n Thank You</P>`;
+        await new EmailService().sendEmail(email, subject, body);
+      } catch (error: any) {
+        throw new Error(`${error.message}`);
+      }
+      return true;
+    } catch (error: any) {
+      throw new Error(`${error.message}`);
     }
   }
 

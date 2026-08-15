@@ -150,5 +150,20 @@ export class UserController {
       });
     }
   }
+
+   static async forgotPassword(req: Request, res: Response): Promise<void> {
+    const { email } = req.body;
+    try {
+      await new UserService().forgotPassword(email);
+      return successResponseData({ message: "Please check your email.", res });
+    } catch (error: any) {
+       return errorResponse({
+        errorMessage: error,
+        statusCode: 401,
+        res,
+      });
+    }
+  }
+
 }
 

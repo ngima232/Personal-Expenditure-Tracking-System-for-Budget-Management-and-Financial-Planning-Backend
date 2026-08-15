@@ -23,6 +23,9 @@ const userSchema = new Schema<UserInterface>(
       required: true,
       default: AuthProviderEnum.local,
     },
+     otp: {
+      type: Number,
+    },
 
     deletedAt: { type: Date, default: null },
   },

@@ -32,7 +32,7 @@ export class AuthRouter extends RouterClass {
     this.router.post(
       "/change-password",
       Validator.check(changePassword),
-      exceptionHandler(UserController.changePassword)
+      exceptionHandler(UserController.confirmForgotPassword)
     );
 
     this.router.post(

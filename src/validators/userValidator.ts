@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { stringSchema, dateSchema,arraySchema ,emailSchema} from './schemas'; 
+import { stringSchema, dateSchema,arraySchema ,emailSchema,numberSchema} from './schemas'; 
 import { UserInterface } from '../interfaces';
 
 const createUser = Joi.object<UserInterface>({
@@ -33,14 +33,10 @@ const login = Joi.object({
   deviceToken: stringSchema.optional().allow(null, "").label("DeviceToken"),
 });
 
-const changePassword = Joi.object({
+const  changePassword = Joi.object({
+  otp: numberSchema.label("OTP").required(),
   email: emailSchema.label("Email").required().trim(),
-  oldPassword: stringSchema.label("Old Password").required(),
-  newPassword: stringSchema
-    .label("New Password")
-    .not(Joi.ref("oldPassword"))
-    .label("New Password")
-    .required(),
+  password: stringSchema.label("Password").required(),
 });
 
 const forgotPassword = Joi.object({

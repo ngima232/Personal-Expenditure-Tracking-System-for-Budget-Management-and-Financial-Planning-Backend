@@ -36,12 +36,13 @@ export interface GetUserInterface {
 }
 
 export interface ConfirmForgotPasswordInterface {
-  officeEmail: string;
+  email: string;
   otp: number;
-  newPassword: string;
+  password: string;
 }
 
 export interface UpdatePassword {
   oldPassword: string;
   newPassword: string;
 }
+

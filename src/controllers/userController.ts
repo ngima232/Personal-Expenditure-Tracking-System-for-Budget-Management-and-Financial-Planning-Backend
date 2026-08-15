@@ -129,12 +129,12 @@ export class UserController {
     }
   }
 
-  static async changePassword(
+  static async confirmForgotPassword(
     req: Request,
     res: Response
   ): Promise<void> {
     try {
-      await new UserService().changePassword(req.body);
+      await new UserService().confirmForgotPassword(req.body);
 
       return successResponseData({
         message: "Password changed successfully.",

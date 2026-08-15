@@ -1,4 +1,4 @@
-import { InputeUserInterface, UserInterface,ChangePassword ,UserLogin,GetUserInterface} from '../interfaces';
+import { InputeUserInterface, UserInterface,ChangePassword ,UserLogin,GetUserInterface,ConfirmForgotPasswordInterface} from '../interfaces';
 import { userModel } from '../models'
 import { Password,  Encoding,EmailService} from "../utils";
 export class UserService {
@@ -55,6 +55,32 @@ export class UserService {
     if (!updatedEmployee)
       throw new Error(`Failed to update id : ${input.email} `);
     return updatedEmployee;
+  }
+    async confirmForgotPassword(
+    input: ConfirmForgotPasswordInterface,
+  ): Promise<UserInterface> {
+    try {
+      const encodedInputEmail = await Encoding.encode(input.email);
+      const emailExist = await userModel.findOne({
+        email: encodedInputEmail,
+        deletedAt: null,
+      });
+      if (!emailExist)
+        throw new Error(`User with email ${input.email} does not exist.`);
+      if (emailExist.otp !== input.otp)
+        throw new Error(`OTP : ${input.otp} does not matched.`);
+      const hashedPassword = await Password.generate(input.password);
+      const updates = {
+        password: hashedPassword,
+      };
+      const updatedEmployee = await userModel 
+        .findByIdAndUpdate(emailExist._id, updates, { new: true })
+        .select("-password -deletedAt -otp");
+      if (!updatedEmployee) throw new Error(`Failed to update password `);
+      return updatedEmployee;
+    } catch (error: any) {
+      throw new Error(`${error.message}`);
+    }
   }
 
   async delete(id: string): Promise<boolean> {
